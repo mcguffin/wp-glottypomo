@@ -1,0 +1,53 @@
+.glottypomo-translations-table .translate-cell {
+	width:50%;
+}
+.glottypomo-translations-table textarea {
+	width:100%;
+	height:100%;
+}
+.glottypomo-translations-table .source {
+	white-space: pre-line;
+}
+
+.page-nav,
+.nav.nav-tabs {
+	margin:0;
+}
+.page-nav .page-entry,
+.nav.nav-tabs [role="presentation"] {
+	background:#fff;
+	border-style:solid;
+	border-width:1px 1px 0 1px;
+	border-color:#ccc;
+	background:#fff;
+	float:left;
+	font-weight:bold;
+	margin-bottom:0;
+	margin-right:0.125em;
+}
+.page-nav.below .page-entry {
+	border-width:0 1px 1px 1px;
+}
+.page-nav .page-entry a,
+.nav.nav-tabs [role="presentation"] a {
+	display:block;
+	padding:0.5em 1em;
+	text-decoration:none;
+}
+.page-nav .page-entry.active,
+.nav.nav-tabs [role="presentation"].active {
+	background:#0074a2;
+}
+.page-nav .page-entry.active a,
+.nav.nav-tabs [role="presentation"].active a {
+	color:#fff;
+}
+[role="tabpanel"] .tab-pane {
+	display:none;
+}
+[role="tabpanel"] .tab-pane.active {
+	display:block;
+}
+
+
+

@@ -76,7 +76,6 @@ class Glottypomo {
 	}
 
 
-
 	/**
 	 *	Fired on plugin activation
 	 */
@@ -90,13 +89,11 @@ class Glottypomo {
 	 */
 	public static function deactivate() {
 	}
+
 	/**
 	 *
 	 */
 	public static function uninstall(){
-
-
-
 
 	}
 
@@ -105,6 +102,39 @@ Glottypomo::instance();
 
 endif;
 
+/**
+ * Autoload GlottyBot Classes
+ *
+ * @param string $classname
+ */
+function glottypomo_autoload( $classname ) {
+	$class_path = dirname(__FILE__). sprintf('/include/class-%s.php' , $classname ) ; 
+	if ( file_exists($class_path) )
+		require_once $class_path;
+}
+spl_autoload_register( 'glottypomo_autoload' );
+
+
+
+/**
+ * Ajax handlers
+ */
+function register_ajax_handler( $action , $callback , $args = null ) {
+	if ( ! isset($GLOBALS['wp_ajax']) )
+		$GLOBALS['wp_ajax'] = new WP_Ajax();
+	return $GLOBALS['wp_ajax']->register_handler( $action , $callback , $args );
+}
+/**
+ * Ajax handlers
+ */
+function unregister_ajax_handler( $action , $callback = null ) {
+	if ( ! isset($GLOBALS['wp_ajax']) )
+		return;
+	return $GLOBALS['wp_ajax']->unregister_handler( $action , $callback );
+}
+
+
+
 if ( is_admin() ) {
-	require_once plugin_dir_path(__FILE__) . 'include/class-GlottypomoAdmin.php';
+	GlottypomoAdmin::instance();
 }
