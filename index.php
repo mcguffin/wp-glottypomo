@@ -103,7 +103,7 @@ Glottypomo::instance();
 endif;
 
 /**
- * Autoload GlottyBot Classes
+ * Autoload Glottypomo Classes
  *
  * @param string $classname
  */
@@ -133,8 +133,13 @@ function unregister_ajax_handler( $action , $callback = null ) {
 	return $GLOBALS['wp_ajax']->unregister_handler( $action , $callback );
 }
 
-
-
 if ( is_admin() ) {
 	GlottypomoAdmin::instance();
+	GlottypomoAdminTaxonomy::instance();
+	GlottypomoAdminMenus::instance();
+} else {
+	/**
+	 *	Init Frontend textdomain loading
+	 */
+	GlottypomoTextdomains::instance();
 }
