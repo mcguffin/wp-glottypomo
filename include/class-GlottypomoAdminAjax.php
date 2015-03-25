@@ -6,10 +6,10 @@
 
 //*/
 
-if ( ! class_exists( 'GlottypomoAdmin' ) ):
-class GlottypomoAdmin {
+if ( ! class_exists( 'GlottypomoAdminAjax' ) ):
+class GlottypomoAdminAjax {
 	private static $_instance = null;
-	private $require_capability = 'manage_options';
+// 	private $require_capability = 'manage_options';
 	
 	private $ajax_urls = array();
 	
@@ -29,16 +29,34 @@ class GlottypomoAdmin {
 	 */
 	private function __construct() {
 		add_action( 'init' , array( &$this , 'init' ) );
-		add_action( 'admin_init' , array( &$this , 'admin_init' ) );
-		add_action( 'admin_menu' , array( &$this , 'add_admin_page' ) );
+// 		add_action( 'admin_init' , array( &$this , 'admin_init' ) );
+// 		add_action( 'admin_menu' , array( &$this , 'add_admin_page' ) );
 		
-		
-		
-		
-		add_action( "wp_ajax_error_{$action}" , 'do_stuff_went_wrong' );
-		if ( ! defined( 'DOING_AJAX' ))
-			echo $ajax_url;
-
+// 		add_action( "wp_ajax_error_{$action}" , 'do_stuff_went_wrong' );
+// 		if ( ! defined( 'DOING_AJAX' ))
+// 			echo $ajax_url;
+// 
+	}
+	
+	/**
+	 *	Load scripts
+	 *	
+	 *	@action "load-$page_hook" -> $page_hook of management page
+	 */
+	function enqueue_admin_page_assets() {
+		wp_enqueue_style( 'glottypomo-admin-page' , plugins_url( '/css/glottypomo-admin-page.css' , dirname(__FILE__) ) );
+		wp_register_script( 'jquery-serializeobject' , plugins_url( 'js/jquery.serializeobject.js' , dirname(__FILE__) ) ,array('jquery'));
+		wp_register_script( 'jquery-ba-bbq' , plugins_url( 'js/jquery.ba-bbq.min.js' , dirname(__FILE__) ) ,array('jquery'));
+		wp_register_script( 'js-base64' , plugins_url( 'js/base64.js' , dirname(__FILE__) ));
+		wp_enqueue_script( 'glottypomo-admin-page' , plugins_url( 'js/glottypomo-admin-page.js' , dirname(__FILE__) ) ,array('wp-backbone','js-base64','jquery-ba-bbq','jquery-serializeobject'));
+		wp_localize_script('glottypomo-admin-page' , 'glottypomo' , array(
+			'ajax_urls' => $this->ajax_urls,
+			'ajax_data' => array(
+				'po' => isset($_REQUEST['po']) ? $_REQUEST['po'] : false,
+				'locale' => isset($_REQUEST['locale']) ? $_REQUEST['locale'] : false,
+			),
+		) );
+		add_action('admin_footer',array( 'GlottypomoTemplates' , 'js_templates' ));
 	}
 	
 	/**
@@ -72,6 +90,10 @@ class GlottypomoAdmin {
 		$this->ajax_urls[$action] = register_ajax_handler( $action , array( &$this , 'ajax_init_po' ) , $args );
 		
 		add_action( 'wp_ajax_error' , array( &$this , 'ajax_error' ) );
+	}
+	
+	function enqueue_assets( $page_hook ) {
+		add_action( "load-$page_hook" , array( &$this , 'enqueue_admin_page_assets' ) );
 	}
 	
 	/**
@@ -308,47 +330,71 @@ class GlottypomoAdmin {
 		return $this->_get_po( $potfile );
 	}
 
+
 	/**
 	 *	Add Admin page to menu
 	 *	
 	 *	@action admin_memu
 	 */
-	function add_admin_page() {
-		$page_hook = add_management_page( __( 'WP GlottyPoMo (management)' , 'wp-glottypomo' ), __( 'WP GlottyPoMo' , 'wp-glottypomo' ), $this->require_capability, 'glottypomo-management', array( &$this , 'render_management_page' ) );
-		add_action( "load-$page_hook" , array( &$this , 'enqueue_admin_page_assets' ) );
-	}
+// 	function add_admin_page() {
+// 		$page_hook = add_management_page( __( 'WP GlottyPoMo (management)' , 'wp-glottypomo' ), __( 'WP GlottyPoMo' , 'wp-glottypomo' ), $this->require_capability, 'glottypomo-management', array( &$this , 'render_management_page' ) );
+// 		add_action( "load-$page_hook" , array( &$this , 'enqueue_admin_page_assets' ) );
+// 	}
+	
+	
+	
 	/**
 	 *	Add Admin page to menu
 	 *	
 	 *	@callback add_management_page
 	 */
+	/*
 	function render_management_page() {
+		$tabs = array(
+			'taxonomies'	=> __('Taxonomies'),
+			'menus'			=> __('Menus'),
+			'plugins'		=> __('Plugins'),
+			'themes' 		=> __('Themes'),
+		);
+		$active_tab = array_shift(array_keys($tabs));
+		if ( isset( $_REQUEST['tab'] ) && isset($tabs[ $_REQUEST['tab'] ]) ) {
+			$active_tab = $_REQUEST['tab'];
+		}
+		
 		?><div class="wrap"><?php
-			?><h2><?php _e( 'GlottyPoMo' , 'wp-glottypomo' ); ?></h2><?php
-			?><p><?php _e( 'Content for management' , 'wp-glottypomo' ); ?></p><?php
+			?><h2 class="nav-tab-wrapper"><?php
+				foreach ( $tabs as $tab => $label ) {
+					$href = add_query_arg( 'tab' , $tab );
+					$active_class = $tab == $active_tab ? ' nav-tab-active' : '';
+					printf('<a href="%s" class="nav-tab%s">%s</a>' , $href , $active_class , $label);
+				}
+		    ?></h2><?php
+		    
+		    // tab content
+		    
 			?><div id="glotty-translations-table"></div><?php
 		?></div><?php
 	}
-	
+	*/
 	/**
 	 *	Add Admin page to menu
 	 *	
 	 *	@action "load-$page_hook" -> $page_hook of management page
 	 */
-	function enqueue_admin_page_assets() {
-		wp_enqueue_style( 'glottypomo-admin-page' , plugins_url( '/css/glottypomo-admin-page.css' , dirname(__FILE__) ) );
-		wp_register_script( 'jquery-serializeobject' , plugins_url( 'js/jquery.serializeobject.js' , dirname(__FILE__) ) ,array('jquery'));
-		wp_register_script( 'js-base64' , plugins_url( 'js/base64.js' , dirname(__FILE__) ));
-		wp_enqueue_script( 'glottypomo-admin-page' , plugins_url( 'js/glottypomo-admin-page.js' , dirname(__FILE__) ) ,array('wp-backbone','js-base64','jquery-serializeobject'));
-		wp_localize_script('glottypomo-admin-page' , 'glottypomo' , array(
-			'ajax_urls' => $this->ajax_urls,
-			'ajax_data' => array(
-				'po' => isset($_REQUEST['po']) ? $_REQUEST['po'] : false,
-				'locale' => isset($_REQUEST['locale']) ? $_REQUEST['locale'] : false,
-			),
-		) );
-		add_action('admin_footer',array( 'GlottypomoTemplates' , 'js_templates' ));
-	}
+// 	function enqueue_admin_page_assets() {
+// 		wp_enqueue_style( 'glottypomo-admin-page' , plugins_url( '/css/glottypomo-admin-page.css' , dirname(__FILE__) ) );
+// 		wp_register_script( 'jquery-serializeobject' , plugins_url( 'js/jquery.serializeobject.js' , dirname(__FILE__) ) ,array('jquery'));
+// 		wp_register_script( 'js-base64' , plugins_url( 'js/base64.js' , dirname(__FILE__) ));
+// 		wp_enqueue_script( 'glottypomo-admin-page' , plugins_url( 'js/glottypomo-admin-page.js' , dirname(__FILE__) ) ,array('wp-backbone','js-base64','jquery-serializeobject'));
+// 		wp_localize_script('glottypomo-admin-page' , 'glottypomo' , array(
+// 			'ajax_urls' => $this->ajax_urls,
+// 			'ajax_data' => array(
+// 				'po' => isset($_REQUEST['po']) ? $_REQUEST['po'] : false,
+// 				'locale' => isset($_REQUEST['locale']) ? $_REQUEST['locale'] : false,
+// 			),
+// 		) );
+// 		add_action('admin_footer',array( 'GlottypomoTemplates' , 'js_templates' ));
+// 	}
 	/**
 	 * Admin init
 	 *
@@ -360,9 +406,9 @@ class GlottypomoAdmin {
 	/**
 	 * Enqueue options Assets
 	 */
-	function enqueue_assets() {
-
-	}
+// 	function enqueue_assets() {
+// 
+// 	}
 
 	/**
 	 *	Remove CR (\x0D) from string and trim.

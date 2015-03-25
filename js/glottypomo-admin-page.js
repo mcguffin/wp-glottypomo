@@ -76,8 +76,12 @@ var glotty={};
         	this.afterSave();
         },
         sync : function(e) {
+        	var evt = $.Event( 'sync:translation' );
+        	this.$el.trigger( evt );
         },
         cancel : function(e) {
+        	var param = $.deparam.querystring();
+        	document.location.search = $.param( {'page':param.page,'tab': param.tab } );
         },
         makePo : function(e) {
         	var evt = $.Event( 'make:translation' );
@@ -97,7 +101,7 @@ var glotty={};
 				html:'',
 				ipp:50,
 				count_entries:0
-			},key_b64;
+			},key_b64, ecommment, glottydata;
 			_.extend( this , initvars );
 			_.extend( this , arguments[0] );
 			//key_b64 = Base64.encode(this.key);
@@ -106,7 +110,14 @@ var glotty={};
 				key : this.entry.b64_key,
 				id : this.entry.b64_key.replace(/[^a-zA-Z0-9]/g,'-'),
 				alternate:glotty.TranslationEntryView.alternate,
-				plural_definitions:this.plural_definitions
+				plural_definitions:this.plural_definitions,
+				glottybot:false
+			}
+			ecommment = this.entry.extracted_comments;
+			if ( !!ecommment && -1 !== ecommment.indexOf('glottybot:')) {
+				try {
+ 					entry_data.glottybot = $.parseJSON(ecommment.substr(10));
+ 				} catch(err){}
 			}
 			/*
 			entry.flags
@@ -168,23 +179,21 @@ if ( glottypomo.ajax_data.locale && glottypomo.ajax_data.po ) {
 		data = glottypomo.ajax_data,
 		$changed;
 	// load po
-	$.post( url , data , build_editor );
-	
+	if ( !!url )
+		$.post( url , data , build_editor );
 	$(document).on('save:translation',function( e ) {
 		var action='save-entries',
 			url = glottypomo.ajax_urls[action]
 			data = glottypomo.ajax_data;
 		$.extend( true , data , e.updatedEntries );
 		$.post(url,data,function(response){
-			
-			console.log(response);
 		});
-	});
-	$(document).on('make:translation',function( e ) {
+	}).on('sync:translation',function( e ) {
+		// 
+	}).on('make:translation',function( e ) {
 		var action='init-po',
 			url = glottypomo.ajax_urls[action]
 			data = glottypomo.ajax_data;
-       	console.log(url , data);
 		$.post( url , data , build_editor );
 	});
 }

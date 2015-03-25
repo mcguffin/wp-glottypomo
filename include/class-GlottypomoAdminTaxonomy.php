@@ -39,6 +39,16 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 		add_action( "load-edit-tags.php" , array( &$this , 'enqueue_assets' ) );
 		
 	}
+
+	/**
+	 *	(Re-)Create pot file for taxonomy
+	 *	
+	 *	@param $object_identifier string taxonomy slug
+	 */
+	function init_translation( $object_identifier ) {
+		$this->create_pot( $object_identifier );
+	}
+
 	/**
 	 *	Enqueue options Assets.
 	 *	Hooks into 'load-edit-tags.php'
@@ -52,25 +62,25 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 	 *	Go to taxonomy editor UI page if necessary.
 	 *	Hooks into 'load-admin.php'
 	 */
-	function admin_translate_taxonomy( ) {
-		if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'translate-taxonomy' ) {
-			if ( isset( $_REQUEST['taxonomy'] , $_REQUEST['target_language'] ) ) {
-				$taxonomy = $_REQUEST['taxonomy'];
-				$target_language = glottypomo_sanitize_language_code( $_REQUEST['target_language'] , '_' , true );
-				
-				if ( taxonomy_exists($taxonomy) && $target_language ) {
-					$nonce_name = "translate-taxonomy-$taxonomy";
-					check_admin_referer( $nonce_name );
-					
-					$taxonomy_object = get_taxonomy($taxonomy);
-					if ( ! current_user_can( $taxonomy_object->cap->manage_terms ) )
-						wp_die( 'Insufficient Privileges' );
-					
-					$this->translate_taxonomy( $taxonomy , $target_language );
-				}
-			}
-		}
-	}
+// 	function admin_translate_taxonomy( ) {
+// 		if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'translate-taxonomy' ) {
+// 			if ( isset( $_REQUEST['taxonomy'] , $_REQUEST['target_locale'] ) ) {
+// 				$taxonomy = $_REQUEST['taxonomy'];
+// 				$target_locale = preg_replace( '/[^a-z0-9_]/i' , '' , $_REQUEST['target_locale']);
+// 				
+// 				if ( taxonomy_exists($taxonomy) && $target_locale ) {
+// 					$nonce_name = "translate-taxonomy-$taxonomy";
+// 					check_admin_referer( $nonce_name );
+// 					
+// 					$taxonomy_object = get_taxonomy($taxonomy);
+// 					if ( ! current_user_can( $taxonomy_object->cap->manage_terms ) )
+// 						wp_die( 'Insufficient Privileges' );
+// 					
+// 					
+// 				}
+// 			}
+// 		}
+// 	}
 
 	
 	/**
@@ -90,7 +100,7 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 				$href = add_query_arg(array(
 					'taxonomy' => $taxonomy,
 					'action' => 'translate-taxonomy', 
-					'target_language' => $language_code,
+					'target_locale' => $language_code,
 					'_wpnonce' => wp_create_nonce( $nonce_name ),
 				),admin_url('admin.php'));
 				
@@ -119,18 +129,18 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 	 *	@param $taxonomy mixed taxonomy object or slug
 	 *	@param $language string target language
 	 */
-	function translate_taxonomy( $taxonomy , $language ) {
-		// make sure we have the taxonomy object
-		if ( ! is_object( $taxonomy ) )
-			$taxonomy = get_taxonomy( $taxonomy );
-		
-		// (re-)create pot file
-		$this->create_pot( $taxonomy );
-		
-		// redirect to editor url.
-		$redirect = $this->get_po_edit_url( $taxonomy->name , $language );
-		wp_redirect($redirect);
-	}
+// 	function translate_taxonomy( $taxonomy , $language ) {
+// 		// make sure we have the taxonomy object
+// 		if ( ! is_object( $taxonomy ) )
+// 			$taxonomy = get_taxonomy( $taxonomy );
+// 		
+// 		// (re-)create pot file
+// 		
+// 		
+// 		// redirect to editor url.
+// 		$redirect = $this->get_po_edit_url( $taxonomy->name , $language );
+// 		wp_redirect($redirect);
+// 	}
 	
 	/**
 	 *	Create a pot file from taxonomy
@@ -161,9 +171,13 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 		$po->set_header('Project-Id-Version' , "Taxonomy {$taxonomy->name}");
 		
 		foreach ( $terms as $term ) {
+			$glotty_comment = array(
+				'heading'	=> $term->name,
+				'label'		=> __('Term'),
+			);
 			$entry = new Translation_Entry(array(
 				'singular' => $this->prepare_string( $term->name ),
-				'translator_comments' => sprintf('Term %s (%d) Name' , $term->slug , $term->term_id )
+				'extracted_comments' => 'glottybot:'.json_encode($glotty_comment),
 			));
 			$po->add_entry( $entry );
 			
@@ -172,14 +186,14 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 			
 			$entry = new Translation_Entry(array(
 				'singular' => $this->prepare_string($term->description ),
-				'translator_comments' => sprintf('Term %s (%d) Description' , $term->slug , $term->term_id )
+				'extracted_comments' => 'glottybot:'.json_encode(array( 'label' => __('Description') )),
 			));
 			$po->add_entry( $entry );
 		}
 		$po->export_to_file( $save_pot_file );
 		//*/
 	}
-
+	
 }
 
 endif;

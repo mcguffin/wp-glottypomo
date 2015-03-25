@@ -1,13 +1,53 @@
+.glottypomo-translations-table {
+	height: 100%;
+}
 .glottypomo-translations-table .translate-cell {
 	width:50%;
 }
+.glottypomo-translations-table td.translation {
+	height:100%;
+}
 .glottypomo-translations-table textarea {
+	position:relative;
 	width:100%;
 	height:100%;
+	resize:vertical;
 }
 .glottypomo-translations-table .source {
 	white-space: pre-line;
 }
+
+.glottypomo-translations-table .translation-heading {
+	background:#0074a2;
+}
+.glottypomo-translations-table .translation-heading h3 {
+	margin:0;
+	color:#fff;
+}
+.glottypomo-translations-table .translation-label {
+	background:#d0d0d0;
+}
+.glottypomo-translations-table .alternate .translation-label {
+	background:#c0c0c0;
+}
+.glottypomo-translations-table .translation-label * {
+	margin:0;
+}
+
+#glottypomo-toolbar .button {
+	height:auto;
+	text-align:center;
+	min-width:65px;
+}
+#glottypomo-toolbar .button .dashicons {
+	font-size:30px;
+	line-height:1em;
+	display:block;
+	margin:5px auto 0 auto;
+	width:30px;
+	height:30px;
+}
+
 
 .page-nav,
 .nav.nav-tabs {

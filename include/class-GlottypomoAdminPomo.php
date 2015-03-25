@@ -33,11 +33,10 @@ abstract class GlottypomoAdminPomo {
 	 *	@param $language string language code
 	 *	@return string Path to po or file without suffix relative to wp-content/languages
 	 */
-	private function get_pomo_file_name( $object_identifier , $language = false ) {
-		
+	private function get_pomo_file_name( $object_identifier , $locale = false ) {
 		$ret = $this->get_textdomain( $object_identifier  );
-		if ( $language ) 
-			$ret .= '-' . glottypomo_language_code_sep( $language , '_' );
+		if ( $locale ) 
+			$ret .= '-' . $locale;
 		return $ret;
 	}
 	
@@ -61,7 +60,7 @@ abstract class GlottypomoAdminPomo {
 	 *	@return string Absolute Path to po file
 	 */
 	protected function get_po_file_path( $object_identifier , $language ) {
-		return $this->get_lang_dir() . $this->get_po_file_name( $object_identifier , $language  );
+		return $this->get_lang_dir() . DIRECTORY_SEPARATOR . $this->get_po_file_name( $object_identifier , $language  );
 	}
 	/**
 	 *	Return true if a po file exists
@@ -128,8 +127,23 @@ abstract class GlottypomoAdminPomo {
 		$mofile = $this->get_mo_file_path( $object_identifier , $language );
 		return file_exists( $mofile ) ? $mofile : false;
 	}
-
 	
+	
+	public function get_translations( $object_identifier ) {
+		$glob_pattern = $this->get_po_file_path( $object_identifier , '*' );
+		$regex_pattern = '/-([a-z_]+)\.po/i';//$this->get_po_file_path( $object_identifier , '([a-zA-Z-_]+)' );
+		$results = glob($glob_pattern);
+		$translations = array();
+		foreach( $results as $result ) {
+			$matches = array();
+			preg_match( $regex_pattern , $result , $matches );
+			if ( isset($matches[1]) ) {
+				$locale = $matches[1];
+				$translations[ $locale ] = $this->get_lang_dirname() . DIRECTORY_SEPARATOR . $this->get_pomo_file_name( $object_identifier , false );
+			}
+		}
+		return $translations;
+	}
 	
 	/**
 	 *	Get pot file name relative to WP_LANG_DIR
@@ -156,7 +170,7 @@ abstract class GlottypomoAdminPomo {
 	}
 
 	private function get_lang_dirname() {
-		return basename(WP_LANG_DIR) . DIRECTORY_SEPARATOR . 'glottypomo';
+		return basename(WP_LANG_DIR) . DIRECTORY_SEPARATOR . 'glottybot';
 	}
 	
 	/**
@@ -165,42 +179,20 @@ abstract class GlottypomoAdminPomo {
 	 *	Should put that in a Loco bridge later.
 	 *
 	 *	@param $object_identifier string category slug or menu id
-	 *	@param $language string language code
+	 *	@param $locale string language code
 	 *	@return string url to the po editor
 	 */
-	public function get_po_edit_url( $object_identifier , $language ){
-		// Loco create: wp-admin/admin.php?page=loco-translate&msginit=taxonomy-{$taxonomy}&name=taxonomy-{$taxonomie}&type=core&custom-locale={$language}
-		// Loco Edit: wp-admin/admin.php?page=loco-translate&poedit=languages/taxonomy-{$object_identifier}-{$language}.po&name=taxonomy-{$taxonomie}&type=core
-		$language = glottypomo_language_code_sep( $language , '_' );
+	public function get_po_edit_url( $object_identifier , $locale ) {
 		$textdomain = $this->get_textdomain( $object_identifier );
 		
-		/*
-		$edit_url = admin_url( 'admin.php' );
-		if ( ! $this->has_po( $object_identifier , $language ) ) {
-			$edit_url = add_query_arg( array(
-				'page' => 'loco-translate',
-				'custom-locale' => $language,
-				'name' => $textdomain,
-				'msginit' => $textdomain,
-				'type' => 'core',
-			) , $edit_url );
-		} else {
-			$edit_url = add_query_arg( array(
-				'page' => 'loco-translate',
-				'poedit' => $this->get_po_file_path( $object_identifier , $language , "languages" ),
-				'name' => $textdomain,
-				'type' => 'core',
-			) , $edit_url );
-		}
-		/*/
 		$edit_url = admin_url( 'tools.php' );
-			$edit_url = add_query_arg( array(
-				'page' => 'glottypomo-management',
-				'po' => $this->get_lang_dirname() . DIRECTORY_SEPARATOR . $this->get_pomo_file_name( $object_identifier , false ),
-				'locale' => $language,
-				'type' => 'core',
-			) , $edit_url );
-		//*/
+		$edit_url = add_query_arg( array(
+			'page'		=> 'glottypomo-management',
+			'tab'		=> $this->textdomain_prefix,
+			'init'		=> $object_identifier,
+			'po'		=> $this->get_lang_dirname() . DIRECTORY_SEPARATOR . $this->get_pomo_file_name( $object_identifier , false ),
+			'locale'	=> $locale,
+		) , $edit_url );
 		
 		/**
 		 * Filter the Editor URL for po file.
@@ -210,10 +202,9 @@ abstract class GlottypomoAdminPomo {
 		 * @param string $language          language
 		 */
 //		tools.php?page=glottypomo-management&locale=de_DE&po=plugins/lang-items/languages/langitems
-		$edit_url = apply_filters( "glottypomo_edit_po_url" , $edit_url , $this->textdomain_prefix , $object_identifier , $language );
+		$edit_url = apply_filters( "glottypomo_edit_po_url" , $edit_url , $this->textdomain_prefix , $object_identifier , $locale );
 		return $edit_url;
 	}
-	
 	
 	/**
 	 *	Get PO Object.

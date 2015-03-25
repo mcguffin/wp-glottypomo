@@ -17,18 +17,31 @@ class GlottypomoTemplates {
 	 */
 	static function js_templates(){
 ?>
+<!-- translations table entry -->
 <script type="text/template" id="tpl-glottypomo-translation-entry">
 	<!-- context -->
+	<% 
+		cols = glottybot.label ? 3 : 2;
+	%>
+	<% if ( glottybot.heading ) { %>
+		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
+			<th class="translation-heading" colspan="<%= cols %>"><h3><%= glottybot.heading %></h3></th>
+		</tr>
+	<% } %>
 	<% if ( entry.context ) { %>
 		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
-			<th class="translation-context" colspan="2"><strong><?php _e('Context:','wp-glottypomo') ?> <%= entry.context %></strong></th>
+			<th class="translation-context" colspan="<%= cols %>"><strong><?php _e('Context:','wp-glottypomo') ?> <%= entry.context %></strong></th>
 		</tr>
 	<% } %>
 
 	<% if ( entry.is_plural ) { %>
 		<!-- plural -->
 		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
-			<td class="source"><?php _e( 'Singular:' , 'wp-glottypomo' ) ?> <%= entry.singular %></td><td rowspan="2" class="translation">
+			<% if ( glottybot.label ) { %>
+				<th class="translation-label"><strong><%= glottybot.label %></strong></th>
+			<% } %>
+			<td class="source"><?php _e( 'Singular:' , 'wp-glottypomo' ) ?> <%= entry.singular %></td>
+			<td rowspan="2" class="translation">
 				<div role="tabpanel">
 					<ul class="nav nav-tabs" role="tablist">	
 					<% for (var i=0;i<entry.translations.length;i++ ) { %>
@@ -54,11 +67,23 @@ class GlottypomoTemplates {
 	<% } else { %>
 		<!-- singular -->
 		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
-			<td class="source"><%= entry.singular %></td><td class="translation"><textarea data-key="<%= entry.b64_key %>" data-idx="0" name="entries[<%= entry.b64_key %>][translations][0]"><%= entry.translations[0] %></textarea></td>
+			<% if ( glottybot.label ) { 
+				source_colspan = '';
+			%>
+				<th class="translation-label"><strong><%= glottybot.label %></strong></th>
+				
+			<% } else { 
+				source_colspan = ' colspan="2"';
+			%>
+			<% } %>
+			<td class="source"<%= source_colspan %>><%= entry.singular %></td>
+			<td class="translation">
+				<textarea data-key="<%= entry.b64_key %>" data-idx="0" name="entries[<%= entry.b64_key %>][translations][0]"><%= entry.translations[0] %></textarea>
+			</td>
 		</tr>
 	<% } %>
 	<!-- comments -->
-	<% if ( entry.translator_comments || entry.extracted_comments ) { %>
+	<% if ( entry.translator_comments || ( ! glottybot && entry.extracted_comments ) ) { %>
 		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
 			<td colspan="2" class="comments"><%
 				if (entry.translator_comments) {
@@ -71,7 +96,7 @@ class GlottypomoTemplates {
 		</tr>
 	<% } %>
 	<!-- flags -->
-	<% if ( entry.flags ) { %>
+	<% if ( entry.flags && entry.flags.length ) { %>
 		<tr<% if ( alternate ) { %> class="alternate"<% } %>>
 			<td colspan="2" class="flags"><%
 				for (var i=0;i<entry.flags.length;i++) {
@@ -83,17 +108,19 @@ class GlottypomoTemplates {
 			entry.translator_comments
 			entry.extracted_comments
 </script>
+
+<!-- translations table -->
 <script type="text/template" id="tpl-glottypomo-translations-table">
 	<% if ( has_po ) { %>
 		<nav id="glottypomo-toolbar">
+			<button id="glottypomo-cancel" class="button button-secondary"><span class="dashicons dashicons-no"></span><?php _e('Cancel') ?></button>
+			<% if ( can_sync ) { %>
+			<button id="glottypomo-sync" class="button button-secondary"><span class="dashicons dashicons-update"></span><?php _e('Sync') ?></button>
+			<% } %>
 			<% if ( can_save ) { %>
-			<button id="glottypomo-save" class="button-primary"><?php _e('Save') ?></button>
+			<button id="glottypomo-save" class="button button-primary"><span class="dashicons dashicons-yes"></span><?php _e('Save') ?></button>
 			<% } %>
 		
-			<% if ( can_sync ) { %>
-			<button id="glottypomo-sync" class="button-secondary"><?php _e('Sync') ?></button>
-			<% } %>
-			<button id="glottypomo-cancel" class="button-secondary"><?php _e('Cancel') ?></button>
 		</nav>
 		<ul class="nav page-nav above">
 		<% for (var i=1;i<count_pages;i++ ) { %>
@@ -105,7 +132,7 @@ class GlottypomoTemplates {
 		<table class="wp-list-table widefat glottypomo-translations-table">
 		<thead>
 			<tr>
-				<th class="translate-cell"><?php _e( 'Original' , 'wp-glottypomo' ) ?></th>
+				<th class="translate-cell" colspan="2"><?php _e( 'Original' , 'wp-glottypomo' ) ?></th>
 				<th class="translate-cell"><?php _e( 'Translation' , 'wp-glottypomo' ) ?></th>
 			</tr>
 		<thead>

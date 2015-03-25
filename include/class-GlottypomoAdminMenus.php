@@ -29,12 +29,21 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 	 * Private constructor
 	 */
 	private function __construct() {
-		add_action( 'load-admin.php' , array( &$this , 'admin_translate_menu' ) );
+// 		add_action( 'load-admin.php' , array( &$this , 'admin_translate_menu' ) );
 		add_action( 'after_menu_locations_table' , array( &$this , 'show_menu_translate_link' ) );
 		add_action( 'load-nav-menus.php' , array( &$this , 'load_show_menu_translate_link' ) );
 
 		add_action( 'load-nav-menus.php' , array( &$this , 'load_menu_editor' ) );
 		add_action( 'wp_ajax_glottypomo-add-menu-item' , array( &$this , 'ajax_add_menu_items' )  );
+	}
+
+	/**
+	 *	(Re-)Create pot file for taxonomy
+	 *	
+	 *	@param $object_identifier string taxonomy slug
+	 */
+	function init_translation( $object_identifier ) {
+		$this->create_pot( $object_identifier );
 	}
 
 	
@@ -56,6 +65,7 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 	/**
 	 *	Language menu items Metabox
 	 */
+	 /*
 	function languages_metabox() {
 		$langs = glottypomo_available_languages();
 		?><ul id="glottypomo-languages-menu-items"><?php
@@ -72,6 +82,7 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 		?><span class="spinner"></span><?php
 		?></span></p><?php
 	}
+	*/
 	function ajax_add_menu_items() {
 		// check nonce, permission
 		! current_user_can( 'edit_theme_options' ) AND die( '-1' );
@@ -145,26 +156,26 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 	 *	Redirect to menu translation UI, if URL params are properly set.
 	 *	Hooked into `load-admin.php`.
 	 */
-	function admin_translate_menu( ) {
-		if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'translate-menu' ) {
-			if ( isset( $_REQUEST['menu'] , $_REQUEST['target_language'] ) ) {
-				$menu = $_REQUEST['menu'];
-				$target_language = glottypomo_sanitize_language_code( $_REQUEST['target_language'] , '_' , true );
-				
-				if ( is_nav_menu($menu) && $target_language ) {
-					$nonce_name = "translate-menu-$menu";
-					check_admin_referer( $nonce_name );
-					
-					// same as in wp-admin/nav-menus.php
-					if ( ! current_user_can( 'edit_theme_options' ) )
-						wp_die( 'Insufficient Privileges' );
-					
- 					$this->translate_menu( $menu , $target_language );
-				}
-			}
-		}
-	}
-
+// 	function admin_translate_menu( ) {
+// 		if ( isset( $_REQUEST['action'] ) && $_REQUEST['action'] == 'translate-menu' ) {
+// 			if ( isset( $_REQUEST['menu'] , $_REQUEST['target_locale'] ) ) {
+// 				$menu = $_REQUEST['menu'];
+// 				$target_locale = glottypomo_sanitize_language_code( $_REQUEST['target_locale'] , '_' , true );
+// 				
+// 				if ( is_nav_menu($menu) && $target_locale ) {
+// 					$nonce_name = "translate-menu-$menu";
+// 					check_admin_referer( $nonce_name );
+// 					
+// 					// same as in wp-admin/nav-menus.php
+// 					if ( ! current_user_can( 'edit_theme_options' ) )
+// 						wp_die( 'Insufficient Privileges' );
+// 					
+//  					$this->translate_menu( $menu , $target_locale );
+// 				}
+// 			}
+// 		}
+// 	}
+// 
 	
 	/**
 	 *	Translate Menu UI elements.
@@ -172,6 +183,7 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 	 */
 	function show_menu_translate_link( ) {
 		global $nav_menu_selected_id;
+		return;
 		if  ( ! is_nav_menu($nav_menu_selected_id) ) {
 			return;
 		}
@@ -188,7 +200,7 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 				$href = add_query_arg(array(
 					'menu' => $nav_menu_selected_id,
 					'action' => 'translate-menu', 
-					'target_language' => $language_code,
+					'target_locale' => $language_code,
 					'_wpnonce' => wp_create_nonce( $nonce_name ),
 				),admin_url('admin.php'));
 				
@@ -218,37 +230,37 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 	 *	@param $menu_id int ID of the menu to translate
 	 *	@param $language string target language
 	 */
-	function translate_menu( $menu_id , $language ) {
-		if ( ! is_nav_menu( $menu_id ) )
-			return false;
-		
-		if ( $created_pot = $this->create_pot( $menu_id ) ) {
-			$textdomain = $this->get_textdomain( $menu_id );
-			if ( ! $this->has_po( $menu_id , $language ) ) {
-				$redirect = admin_url( 'admin.php' );
-				$redirect = add_query_arg( array(
-					'page' => 'loco-translate',
-					'custom-locale' => $language,
-					'name' => $textdomain,
-					'msginit' => $textdomain,
-					'type' => 'core',
-				) , $redirect );
-			} else {
-				$redirect = admin_url( 'admin.php' );
-				$redirect = add_query_arg( array(
-					'page' => 'loco-translate',
-					'poedit' => "languages/$textdomain-{$language}.po",
-					'name' => $textdomain,
-					'type' => 'core',
-				) , $redirect );
-			}
-		} else {
-			$redirect = admin_url( 'nav-menus.php' );
-			
-		}
-		
-		wp_redirect($redirect);
-	}
+// 	function translate_menu( $menu_id , $language ) {
+// 		if ( ! is_nav_menu( $menu_id ) )
+// 			return false;
+// 		
+// 		if ( $created_pot = $this->create_pot( $menu_id ) ) {
+// 			$textdomain = $this->get_textdomain( $menu_id );
+// 			if ( ! $this->has_po( $menu_id , $language ) ) {
+// 				$redirect = admin_url( 'admin.php' );
+// 				$redirect = add_query_arg( array(
+// 					'page' => 'loco-translate',
+// 					'custom-locale' => $language,
+// 					'name' => $textdomain,
+// 					'msginit' => $textdomain,
+// 					'type' => 'core',
+// 				) , $redirect );
+// 			} else {
+// 				$redirect = admin_url( 'admin.php' );
+// 				$redirect = add_query_arg( array(
+// 					'page' => 'loco-translate',
+// 					'poedit' => "languages/$textdomain-{$language}.po",
+// 					'name' => $textdomain,
+// 					'type' => 'core',
+// 				) , $redirect );
+// 			}
+// 		} else {
+// 			$redirect = admin_url( 'nav-menus.php' );
+// 			
+// 		}
+// 		
+// 		wp_redirect($redirect);
+// 	}
 	
 	/**
 	 *	Create a pot file from menu entries.
@@ -262,20 +274,20 @@ class GlottypomoAdminMenus extends GlottypomoAdminPomo {
 		
 		if ( ! wp_is_writable(WP_LANG_DIR) )
 			return;
-		
-		$save_pot_file = $this->get_pot_file_name( $menu_id );
 
 		$menu = wp_get_nav_menu_object( $menu_id );
+
+		$save_pot_file = $this->get_pot_file_path( $menu_id );
+
 		$menu_items = wp_get_nav_menu_items( $menu_id , array(
 			'nopaging'	=> true,
 		) );
-
 		$po = $this->get_po( );
 		$po->set_header('Project-Id-Version' , "Nav Menu {$menu->name}");
 		
 		foreach ( $menu_items as $item ) {
 			$entry = new Translation_Entry(array(
-				'singular' => trim( $item->post_title) ,
+				'singular' => trim( $item->title ) ,
 				'translator_comments' => sprintf('# Nav Menu %d Entry %d' , $menu_id , $item->id )
 			));
 			$po->add_entry( $entry );

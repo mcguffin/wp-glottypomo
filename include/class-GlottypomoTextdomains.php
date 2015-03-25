@@ -71,6 +71,7 @@ class GlottypomoTextdomains extends GlottypomoAdminPomo {
 	 *	hooks into 'plugins_loaded'
 	 */
 	function plugins_loaded( ) {
+		return;
 		$language = glottypomo_current_language( '_' );
 		$has_taxonomy_translation = false;
 		

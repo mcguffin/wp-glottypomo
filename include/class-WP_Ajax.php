@@ -26,7 +26,7 @@ class WP_Ajax {
 
 		$args = wp_parse_args( $args ,  array(
 			'callback_args'		=> false,
-			'check_capability'	=> false,
+			'check_capability'	=> false, // 'cap' , array('meta_cap',$arg)
 			'with_frontend'		=> false,
 			'response_type'		=> false,//'application/json',
 		) );

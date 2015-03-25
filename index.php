@@ -135,6 +135,7 @@ function unregister_ajax_handler( $action , $callback = null ) {
 
 if ( is_admin() ) {
 	GlottypomoAdmin::instance();
+	GlottypomoAdminAjax::instance();
 	GlottypomoAdminTaxonomy::instance();
 	GlottypomoAdminMenus::instance();
 } else {
