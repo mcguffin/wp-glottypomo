@@ -178,6 +178,7 @@ if ( glottypomo.ajax_data.locale && glottypomo.ajax_data.po ) {
 		url = glottypomo.ajax_urls[action],
 		data = glottypomo.ajax_data,
 		$changed;
+	console.log(glottypomo.ajax_urls);
 	// load po
 	if ( !!url )
 		$.post( url , data , build_editor );

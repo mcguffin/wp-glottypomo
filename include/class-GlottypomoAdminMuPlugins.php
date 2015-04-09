@@ -4,8 +4,8 @@
 /**
  *	Edit Taxonomy translations
  */
-if ( ! class_exists( 'GlottypomoAdminTaxonomy' ) ):
-class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
+if ( ! class_exists( 'GlottypomoAdminMuPlugins' ) ):
+class GlottypomoAdminMuPlugins extends GlottypomoAdminPomo {
 
 	private static $_instance = null;
 
@@ -31,12 +31,6 @@ class GlottypomoAdminTaxonomy extends GlottypomoAdminPomo {
 	 * Private constructor
 	 */
 	private function __construct() {
-		if ( wp_is_writable(WP_LANG_DIR) )
-			foreach ( get_taxonomies( array( 'public' => true ) , 'names' ) as $taxonomy )
-				add_action( "after-{$taxonomy}-table", array( &$this , 'show_taxo_translate_link' ) );
-		
-		add_action( 'load-admin.php' , array( &$this , 'admin_translate_taxonomy' ) );
-		add_action( "load-edit-tags.php" , array( &$this , 'enqueue_assets' ) );
 		
 	}
 

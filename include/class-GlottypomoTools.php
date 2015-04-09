@@ -183,7 +183,7 @@ class GlottypomoTools {
 	 *			'condition_human'		string, human readable condition
 	 *	)
 	 */
-	function parse_plural_definition( $definition ) {
+	static function parse_plural_definition( $definition ) {
 		require_once ABSPATH . WPINC . '/pomo/translations.php';
 		$t = new Gettext_Translations();
 		list($nplurals,$expr) = $t->nplurals_and_expression_from_header( $definition );

@@ -33,7 +33,7 @@ class WP_Ajax {
 		
 		extract( $args );
 		add_action( "wp_ajax_{$action}" , array( &$this , 'handler' ) );
-		if ( $with_frontent )
+		if ( $with_frontend )
 			add_action( "wp_ajax_nopriv_{$action}" , array( &$this , 'handler' ) );
 			
 		$args['callback']		= $callback;
